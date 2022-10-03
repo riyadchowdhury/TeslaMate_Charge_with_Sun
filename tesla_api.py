@@ -43,7 +43,6 @@ def is_car_plugged_in(token, teslafi_dict):
         return True
 
 def is_car_home(teslafi_dict):
-    return False
     if teslafi_dict['location'] == 'Home':
         return True
     else:
