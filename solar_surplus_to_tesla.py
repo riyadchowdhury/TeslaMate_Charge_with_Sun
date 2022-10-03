@@ -53,6 +53,9 @@ def mainfunction():
             else:
                 if tesla_api.is_car_charging(teslafi_dict): #car already charging
                     current_amps = tesla_api.get_current_amps(teslafi_dict)
+                    if current_amps is None:
+                        print("couldnt get current amps not doing anything")
+                        return
                     current_car_consumption = current_amps * 238
                     envoy_data = get_envoy_data()
                     rest_house_consuption = envoy_data['consumption'] - current_car_consumption
