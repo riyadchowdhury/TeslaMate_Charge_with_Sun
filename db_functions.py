@@ -6,6 +6,16 @@ import local_envoy_reader
 import influxdb_client
 from influxdb_client.client.write_api import SYNCHRONOUS
 
+url=os.getenv('INFLUXDB_URL')
+token=os.getenv('INFLUXDB_TOKEN')
+org=os.getenv('INFLUXDB_ORG')
+bucket=os.getenv('INFLUXDB_BUCKET')
+client = influxdb_client.InfluxDBClient(
+   url=url,
+   token=token,
+   org=org
+)
+
 def get_envoy_data():
     print('getting envoy data')
     envoy_host = os.getenv('ENVOY_HOST')
@@ -39,16 +49,6 @@ def get_envoy_data():
 
 def write_envoy_data_to_db():
     envoy_data = get_envoy_data()
-    url='http://envoyyaml-influxdb-1:8086'
-    token='abc123'
-    org='teslaorg'
-    bucket='teslabucket'
-    print('Writing')
-    client = influxdb_client.InfluxDBClient(
-       url=url,
-       token=token,
-       org=org
-    )
     write_api = client.write_api(write_options=SYNCHRONOUS)
     production_point = influxdb_client.Point("envoy_data").tag("type", "production").field("watt", envoy_data['production'])
     consumption_point = influxdb_client.Point("envoy_data").tag("type", "consumption").field("watt", envoy_data['consumption'])
@@ -56,24 +56,24 @@ def write_envoy_data_to_db():
     write_api.write(bucket, org, [production_point, consumption_point, surplus_point])
     print(json.dumps(envoy_data))
     print('Done write')
+    return envoy_data
 
 def read_envoy_data_from_db():
     print('Reading')
-    p = {"_start": datetime.timedelta(hours=-1),
-     "_type": "production",
-     "_every": datetime.timedelta(minutes=5)
-     }
-
-    tables = query_api.query('''
-        from(bucket:"my-bucket") |> range(start: _start)
-            |> filter(fn: (r) => r["_measurement"] == "envoy_data")
-            |> filter(fn: (r) => r["_field"] == "watt")
-            |> filter(fn: (r) => r["type"] == _type
-            |> aggregateWindow(every: _every, fn: mean, createEmpty: true)
-    ''', params=p)
-
+    query_api = client.query_api()
+    query = '''
+        from(bucket:_bucket)\
+            |> range(start: -5m)\
+            |> filter(fn:(r) => r._measurement == "envoy_data")\
+            |> filter(fn:(r) => r._field == "watt" )
+            |> aggregateWindow(every: 5m, fn: mean)
+    '''
+    param = {
+        "_bucket": bucket
+    }
+    tables = query_api.query(org=org, query=query, params=param)
+    data = {}
     for table in tables:
-        print(table)
         for record in table.records:
-            print(str(record["_time"]) + " - " + record["type"] + ": " + str(record["_value"]))
-            return str(record["_time"]) + " - " + record["type"] + ": " + str(record["_value"])
+            data[record.values.get("type")] = record.get_value()
+    return data

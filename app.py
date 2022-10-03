@@ -15,10 +15,13 @@ from flask import Flask
 # sched.add_job(solar_surplus_to_tesla.mainfunction,'interval',seconds=60)
 # sched.start()
 
-db_functions.write_envoy_data_to_db()
+envoy_data = db_functions.write_envoy_data_to_db()
+solar_surplus_to_tesla.mainfunction(envoy_data)
 
 sched = BackgroundScheduler(daemon=True)
 sched.add_job(db_functions.write_envoy_data_to_db,'interval',seconds=60)
+sched.add_job(solar_surplus_to_tesla.mainfunction,'interval',seconds=300)
+
 sched.start()
 
 app = Flask(__name__)
