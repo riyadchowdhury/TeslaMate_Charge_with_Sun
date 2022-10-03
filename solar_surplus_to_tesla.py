@@ -22,7 +22,7 @@ def mainfunction(envoy_data=None):
                     if envoy_data is None:
                         envoy_data = db_functions.read_envoy_data_from_db()
                     rest_house_consuption = envoy_data['consumption'] - current_car_consumption
-                    if (rest_house_consuption + 500) > envoy_data['production']:
+                    if (rest_house_consuption) > envoy_data['production']:
                         print('house is using too much power stop charge')
                         tesla_api.stop_charge(token, teslafi_dict)
                     elif envoy_data['surplus'] > 250:
@@ -35,19 +35,14 @@ def mainfunction(envoy_data=None):
                         print('negetive surplus lets lower amps')
                         print(json.dumps(envoy_data))
                         new_amps = tesla_api.calculate_decrease_amps(envoy_data['surplus'], current_amps)
-                        if new_amps == 0:
-                            print('need to lower amps to 0, so stopping charge')
-                            tesla_api.stop_charge(token, teslafi_dict)
-                        else:
-                            print(f"lowering amps to {new_amps}")
-                            tesla_api.set_charging_amps(token, new_amps, teslafi_dict)
-                            tesla_api.start_charge(token, teslafi_dict)
+                        print(f"lowering amps to {new_amps}")
+                        tesla_api.set_charging_amps(token, new_amps, teslafi_dict)
+                        tesla_api.start_charge(token, teslafi_dict)
                     else:
                         print('everything is balanced not doing anything')
                 else: #car not charging
                     if envoy_data is None:
                         envoy_data = db_functions.read_envoy_data_from_db()
-                    print(json.dumps(envoy_data))
                     if envoy_data['surplus'] > 500:
                         required_amps = tesla_api.calculate_required_amps(envoy_data['surplus'])
                         tesla_api.set_charging_amps(token, required_amps, teslafi_dict)

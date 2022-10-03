@@ -3,6 +3,8 @@ import time
 import requests
 
 def set_charging_amps(token, amps, teslafi_dict):
+    if amps < 5: #tesla api does not allow charging less than 5 amps
+        amps = 5
     if int(teslafi_dict['charge_current_request']) != amps:
         r = requests.get(
             f"https://www.teslafi.com/feed.php?command=set_charging_amps&charging_amps={amps}&wake=20",
