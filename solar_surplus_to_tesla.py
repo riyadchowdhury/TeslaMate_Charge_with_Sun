@@ -47,6 +47,7 @@ def mainfunction(envoy_data=None):
                 else: #car not charging
                     if envoy_data is None:
                         envoy_data = db_functions.read_envoy_data_from_db()
+                    print(json.dumps(envoy_data))
                     if envoy_data['surplus'] > 500:
                         required_amps = tesla_api.calculate_required_amps(envoy_data['surplus'])
                         tesla_api.set_charging_amps(token, required_amps, teslafi_dict)
