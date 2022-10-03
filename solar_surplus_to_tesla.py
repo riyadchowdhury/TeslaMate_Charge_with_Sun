@@ -39,7 +39,7 @@ def get_envoy_data():
 
 
 def mainfunction():
-    print('running mainfunction envvar')
+    print('running mainfunction')
     token = os.getenv('TESLAFI_API')
     teslafi_dict = tesla_api.get_tesla_feed(token)
     if tesla_api.is_car_home(teslafi_dict):

@@ -10,3 +10,4 @@ urllib3
 apscheduler
 flask
 requests
+influxdb-client

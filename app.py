@@ -1,4 +1,5 @@
 import local_envoy_reader
+import db_functions
 import solar_surplus_to_tesla
 import tesla_api
 import asyncio
@@ -8,10 +9,16 @@ import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
 
-solar_surplus_to_tesla.mainfunction()
+# solar_surplus_to_tesla.mainfunction()
+#
+# sched = BackgroundScheduler(daemon=True)
+# sched.add_job(solar_surplus_to_tesla.mainfunction,'interval',seconds=60)
+# sched.start()
+
+db_functions.write_envoy_data_to_db()
 
 sched = BackgroundScheduler(daemon=True)
-sched.add_job(solar_surplus_to_tesla.mainfunction,'interval',seconds=60)
+sched.add_job(db_functions.write_envoy_data_to_db,'interval',seconds=60)
 sched.start()
 
 app = Flask(__name__)
@@ -19,7 +26,8 @@ app = Flask(__name__)
 @app.route("/home")
 def home():
     """ Function for test purposes. """
-    return "Hello World" # TODO print stats on webpage
+    out = db_functions.read_envoy_data_from_db()
+    return out # TODO print stats on webpage
 
 if __name__ == "__main__":
     app.run(use_reloader=False)
