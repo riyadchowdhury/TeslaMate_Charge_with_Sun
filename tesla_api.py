@@ -60,7 +60,12 @@ def get_battery_level(teslafi_dict):
     return int(teslafi_dict['battery_level'])
 
 def get_current_amps(teslafi_dict):
-    return int(teslafi_dict['charge_current_request'])
+    current_amps = int(teslafi_dict['charge_current_request'])
+    if teslafi_dict['charge_current_request'] is None:
+        current_amps = 32
+    if current_amps < 5:
+        current_amps = 5
+    return current_amps
 
 def start_charge(token, teslafi_dict):
     if teslafi_dict['charging_state'] != 'Charging':
@@ -103,7 +108,7 @@ def calculate_increase_amps(surplus, current_car_amps):
     amps = surplus // 238;
     new_amps = amps + current_car_amps
     if new_amps < 32:
-        return new_amps
+        return int(new_amps)
     else:
         return 32
 
@@ -113,4 +118,4 @@ def calculate_decrease_amps(surplus, current_car_amps):
     if new_amps < 0:
         return 0
     else:
-        return new_amps
+        return int(new_amps)

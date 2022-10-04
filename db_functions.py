@@ -76,4 +76,8 @@ def read_envoy_data_from_db():
     for table in tables:
         for record in table.records:
             data[record.values.get("type")] = record.get_value()
-    return data
+    if data['production'] is None or data['consumption'] is None or data['surplus'] is None:
+        envoy_data = get_envoy_data()
+        return envoy_data
+    else:
+        return data
