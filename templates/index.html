@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Charging mode</h1>
+
+<p>Please select if you want to charge from solar or the grid.</p>
+
+<form action="/selectchargemode" method="post">
+  <label for="charge">Choose a mode:</label>
+  <select name="charge" id="charge">
+    <option value="solar"{{ solar_selected }}>Solar</option>
+    <option value="grid"{{ grid_selected }}>Grid</option>
+  </select>
+  <br><br>
+  <input type="submit" value="Submit">
+</form>
+
+<p>Click the "Submit" button</p>
+
+</body>
+</html>

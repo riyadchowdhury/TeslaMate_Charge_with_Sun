@@ -1,3 +1,4 @@
+import globals
 import db_functions
 import tesla_api
 import json
@@ -5,6 +6,10 @@ import os
 
 def mainfunction(envoy_data=None):
     print('running mainfunction')
+    print(f"charge mode is set to {globals.charge_mode}")
+    if globals.charge_mode == 'grid': #If charge mode is set to grid don't do anything
+        print(f"charge mode is set to {globals.charge_mode} so not doing anything")
+        return
     token = os.getenv('TESLAFI_API')
     teslafi_dict = tesla_api.get_tesla_feed(token)
     if tesla_api.is_car_home(teslafi_dict):
