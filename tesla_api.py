@@ -3,6 +3,8 @@ import time
 import requests
 
 def set_charging_amps(token, amps, teslafi_dict):
+    if amps < 5: #tesla api does not allow charging less than 5 amps
+        amps = 5
     if int(teslafi_dict['charge_current_request']) != amps:
         r = requests.get(
             f"https://www.teslafi.com/feed.php?command=set_charging_amps&charging_amps={amps}&wake=20",
@@ -19,14 +21,22 @@ def set_charging_amps(token, amps, teslafi_dict):
 
 def get_tesla_feed(token):
     r = requests.get(
-        f"https://www.teslafi.com/feed.php?command=lastGood",
+        f"https://www.teslafi.com/feed.php",
         headers={
             'Authorization': f"Bearer {token}"
         }
     )
-    if r.status_code != 200:
-        print("Error getting feed")
-    return r.json()
+    feed = r.json()
+    if feed['charging_state'] is None:
+        r_lastgood = requests.get(
+            f"https://www.teslafi.com/feed.php?command=lastGood",
+            headers={
+                'Authorization': f"Bearer {token}"
+            }
+        )
+        return r_lastgood.json()
+    else:
+        return feed
 
 def is_car_plugged_in(token, teslafi_dict):
     if teslafi_dict['charging_state'] == 'Disconnected':
@@ -50,7 +60,12 @@ def get_battery_level(teslafi_dict):
     return int(teslafi_dict['battery_level'])
 
 def get_current_amps(teslafi_dict):
-    return int(teslafi_dict['charge_current_request'])
+    current_amps = int(teslafi_dict['charge_current_request'])
+    if teslafi_dict['charge_current_request'] is None:
+        current_amps = 32
+    if current_amps < 5:
+        current_amps = 5
+    return current_amps
 
 def start_charge(token, teslafi_dict):
     if teslafi_dict['charging_state'] != 'Charging':
@@ -66,21 +81,6 @@ def start_charge(token, teslafi_dict):
             print("starting charge")
     else:
         print('car already charging')
-
-def wake_car(token, teslafi_dict):
-    if teslafi_dict['charging_state'] is None:
-        r = requests.get(
-            f"https://www.teslafi.com/feed.php?command=wake_up",
-            headers={
-                'Authorization': f"Bearer {token}"
-            }
-        )
-        if r.status_code != 200:
-            print("Error setting charge")
-        else:
-            print("waking car")
-    else:
-        print('car already awake')
 
 def stop_charge(token, teslafi_dict):
     if teslafi_dict['charging_state'] == 'Charging':
@@ -108,7 +108,7 @@ def calculate_increase_amps(surplus, current_car_amps):
     amps = surplus // 238;
     new_amps = amps + current_car_amps
     if new_amps < 32:
-        return new_amps
+        return int(new_amps)
     else:
         return 32
 
@@ -118,4 +118,4 @@ def calculate_decrease_amps(surplus, current_car_amps):
     if new_amps < 0:
         return 0
     else:
-        return new_amps
+        return int(new_amps)
