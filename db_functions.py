@@ -1,4 +1,3 @@
-import globals
 import asyncio
 import json
 import datetime
@@ -49,7 +48,6 @@ def get_envoy_data():
     return data
 
 def write_envoy_data_to_db():
-    print(f"charge mode inside is {globals.charge_mode}")
     envoy_data = get_envoy_data()
     write_api = client.write_api(write_options=SYNCHRONOUS)
     production_point = influxdb_client.Point("envoy_data").tag("type", "production").field("watt", envoy_data['production'])

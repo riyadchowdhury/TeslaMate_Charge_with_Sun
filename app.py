@@ -1,4 +1,4 @@
-import globals
+import configparser
 import local_envoy_reader
 import db_functions
 import solar_surplus_to_tesla
@@ -10,7 +10,7 @@ import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template, redirect, url_for, request
 
-globals.init()
+config = configparser.ConfigParser()
 
 envoy_data = db_functions.write_envoy_data_to_db()
 solar_surplus_to_tesla.mainfunction(envoy_data)
@@ -29,7 +29,8 @@ def home():
 
 @app.route('/')
 def root():
-    if globals.charge_mode == 'solar':
+    config.read('config.ini')
+    if config['DEFAULT']['charge_mode'] == 'solar':
         solar_selected = ' selected'
         grid_selected = ''
     else:
@@ -39,8 +40,11 @@ def root():
 
 @app.route('/selectchargemode', methods=['POST'])
 def handle_data():
-    globals.charge_mode = request.form['charge']
-    print(f"charge mode is now {globals.charge_mode}")
+    config.read('config.ini')
+    config['DEFAULT']['charge_mode'] = request.form['charge']
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
+    print(f"charge mode is now {config['DEFAULT']['charge_mode']}")
     return redirect(url_for('root'))
 
 if __name__ == "__main__":
