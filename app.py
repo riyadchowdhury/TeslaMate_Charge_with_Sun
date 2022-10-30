@@ -45,7 +45,7 @@ def root():
 
 @app.route('/settings')
 def settings():
-    return render_template('index.html')
+    return render_template('settings.html')
 
 @app.route('/selectchargemode', methods=['POST'])
 def handle_data():
