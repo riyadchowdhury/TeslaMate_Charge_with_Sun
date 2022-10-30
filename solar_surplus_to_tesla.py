@@ -7,7 +7,7 @@ import os
 def mainfunction(envoy_data=None):
     print('running mainfunction')
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read('/etc/enhpaseteslasync/config.ini')
     print(f"charge mode is set to {config['DEFAULT']['charge_mode']}")
     if config['DEFAULT']['charge_mode'] == 'grid': #If charge mode is set to grid don't do anything
         print(f"charge mode is set to {config['DEFAULT']['charge_mode']} so not doing anything")
