@@ -6,9 +6,17 @@ import tesla_api
 import asyncio
 import json
 import requests
+import os.path
+import shutil
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template, redirect, url_for, request
+
+if not os.path.exists('/etc/enhpaseteslasync/config.ini'):
+    print('file doesnt exist so copy it')
+    shutil.copyfile('config.ini', '/etc/enhpaseteslasync/config.ini')
+else:
+    print('file already exists')
 
 config = configparser.ConfigParser()
 

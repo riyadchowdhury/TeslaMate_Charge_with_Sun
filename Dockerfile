@@ -13,6 +13,4 @@ COPY . .
 
 RUN mkdir -p /etc/enhpaseteslasync
 
-RUN mv config.ini /etc/enhpaseteslasync/config.ini
-
 CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0", "--port=5050"]
