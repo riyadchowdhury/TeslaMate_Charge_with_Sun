@@ -43,6 +43,10 @@ def root():
         grid_selected = ' selected'
     return render_template('index.html', solar_selected=solar_selected, grid_selected=grid_selected)
 
+@app.route('/settings')
+def settings():
+    return render_template('index.html')
+
 @app.route('/selectchargemode', methods=['POST'])
 def handle_data():
     config.read('/etc/enhpaseteslasync/config.ini')

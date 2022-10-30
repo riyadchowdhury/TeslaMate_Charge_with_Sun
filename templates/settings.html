@@ -1,22 +1,23 @@
 <!DOCTYPE html>
 <html>
-<body>
-
-<h1>Charging mode</h1>
-
-<p>Please select if you want to charge from solar or the grid.</p>
-
-<form action="/selectchargemode" method="post">
-  <label for="charge">Choose a mode:</label>
-  <select name="charge" id="charge">
-    <option value="solar"{{ solar_selected }}>Solar</option>
-    <option value="grid"{{ grid_selected }}>Grid</option>
-  </select>
-  <br><br>
-  <input type="submit" value="Submit">
-</form>
-
-<p>Click the "Submit" button</p>
-
-</body>
+    <head>
+        <title>Title</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/uikit.min.css') }}">
+        <script src="{{ url_for('static', filename='js/uikit.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/uikit-icons.min.js') }}"></script>
+    </head>
+    <body>
+      <form>
+          <select class="uk-select">
+              <option></option>
+              <option></option>
+          </select>
+          <textarea class="uk-textarea"></textarea>
+          <input class="uk-radio" type="radio">
+          <input class="uk-checkbox" type="checkbox">
+          <input class="uk-range" type="range">
+      </form>
+    </body>
 </html>
