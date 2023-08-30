@@ -12,18 +12,26 @@ def get_tesla_status(carid, teslamateapi_host, teslamateapi_port):
     return feed
 
 
-def set_charging_amps(token, amps, teslamate_response, carid, teslamateapi_host, teslamateapi_port):
+def set_charging_amps(token, amps, teslamate_response, carid, teslamateapi_host, teslamateapi_port, attempt=1):
     if amps < 5:  # tesla api does not allow charging less than 5 amps
         amps = 5
     if int(teslamate_response['data']['status']['charging_details']['charge_current_request']) != amps:
+        charging_amps = {'charging_amps': amps}
         r = requests.post(
-            f"http://{teslamateapi_host}:{teslamateapi_port}/api/v1/cars/{carid}/command/set_charging_amps?charging_amps={amps}",
+            f"http://{teslamateapi_host}:{teslamateapi_port}/api/v1/cars/{carid}/command/set_charging_amps",
+            json=charging_amps,
             headers={
                 'Authorization': f"Bearer {token}"
             }
         )
+        print(r.content)
         if r.status_code != 200:
-            print("Error setting charge")
+            print("Error setting charge try {attempt}")
+            attempt = attempt + 1
+            time.sleep(5)
+            if attempt < 4:
+                set_charging_amps(token, amps, teslamate_response,
+                                  carid, teslamateapi_host, teslamateapi_port, attempt)
         else:
             print(f"car set to {amps} amps")
     else:
@@ -61,13 +69,14 @@ def get_current_amps(teslamate_response):
 
 
 def start_charge(token, teslamate_response, carid, teslamateapi_host, teslamateapi_port):
-    if teslamate_response['data']['status']['state'] == 'charging':
+    if teslamate_response['data']['status']['state'] != 'charging':
         r = requests.post(
             f"http://{teslamateapi_host}:{teslamateapi_port}/api/v1/cars/{carid}/command/charge_start",
             headers={
                 'Authorization': f"Bearer {token}"
             }
         )
+        print(r.content)
         if r.status_code != 200:
             print("Error setting charge")
         else:
@@ -84,6 +93,7 @@ def stop_charge(token, teslamate_response, carid, teslamateapi_host, teslamateap
                 'Authorization': f"Bearer {token}"
             }
         )
+        print(r.content)
         if r.status_code != 200:
             print("Error setting charge")
         else:
