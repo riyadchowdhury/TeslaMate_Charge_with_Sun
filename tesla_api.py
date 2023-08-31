@@ -26,9 +26,9 @@ def set_charging_amps(token, amps, teslamate_response, carid, teslamateapi_host,
         )
         print(r.content)
         if r.status_code != 200:
+            attempt = attempt + 1
             print("Error setting charge try {attempt}")
             time.sleep(5)
-            attempt = attempt + 1
             if attempt < 4:
                 wake_car(token, teslamate_response, carid,
                          teslamateapi_host, teslamateapi_port)
@@ -89,7 +89,7 @@ def start_charge(token, teslamate_response, carid, teslamateapi_host, teslamatea
 
 
 def wake_car(token, teslamate_response, carid, teslamateapi_host, teslamateapi_port):
-    if teslamate_response['data']['status']['state'] != 'asleep':
+    if teslamate_response['data']['status']['state'] == 'asleep':
         r = requests.post(
             f"http://{teslamateapi_host}:{teslamateapi_port}/api/v1/cars/{carid}/wake_up",
             headers={
