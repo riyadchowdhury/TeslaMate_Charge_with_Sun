@@ -6,7 +6,10 @@ def initialize_db():
     database.connect()
     database.execute_query(
         "select exists(select * from information_schema.tables where table_name=%s)", ('charge_with_sun_settings',))
-    settings_db_exists = database.fetch_one()[0]
+    query_response = database.fetch_one()
+    settings_db_exists = False
+    if query_response is not None:
+        settings_db_exists = query_response[0]
     print(settings_db_exists)
     if not settings_db_exists:
         database.execute_query('''CREATE TABLE IF NOT EXISTS charge_with_sun_settings(
@@ -23,7 +26,10 @@ def initialize_db():
                                ('solar', 30, 32, 90, 238, 500))
     database.execute_query(
         "select exists(select * from information_schema.tables where table_name=%s)", ('solar',))
-    solar_db_exists = database.fetch_one()[0]
+    query_response = database.fetch_one()
+    solar_db_exists = False
+    if query_response is not None:
+        solar_db_exists = query_response[0]
     if not solar_db_exists:
         print('creating solar db')
         database.execute_query('''CREATE TABLE IF NOT EXISTS solar(

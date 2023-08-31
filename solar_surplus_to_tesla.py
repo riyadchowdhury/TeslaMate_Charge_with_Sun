@@ -1,5 +1,6 @@
 import db_functions
-import tesla_api
+import teslamate_api
+import calculate_amps
 import json
 import os
 
@@ -17,26 +18,22 @@ def mainfunction(envoy_data=None):
     teslamateapi_host = os.getenv('TESLAMATEAPI_HOST')
     teslamateapi_port = os.getenv('TESLAMATEAPI_PORT')
     carid = os.getenv('CARID', '1')
-    teslamate_response = tesla_api.get_tesla_status(
-        carid, teslamateapi_host, teslamateapi_port)
-    if tesla_api.is_car_home(teslamate_response):
-        if tesla_api.is_car_plugged_in(teslamate_response):
-            battery_level = tesla_api.get_battery_level(teslamate_response)
+    teslamate = teslamate_api.TeslaMate()
+    tesla_status = teslamate.get_tesla_status()
+    if teslamate.is_car_home():
+        if teslamate.is_car_plugged_in():
+            battery_level = teslamate.get_battery_level()
             # low battery charge no matter what
             if battery_level < int(config['minimum_battery_level']):
-                tesla_api.set_charging_amps(token, int(
-                    config['max_amps']), teslamate_response, carid, teslamateapi_host, teslamateapi_port)
-                tesla_api.start_charge(
-                    token, teslamate_response, carid, teslamateapi_host, teslamateapi_port)
+                teslamate.set_charging_amps(int(config['max_amps']))
+                teslamate.start_charge()
             # high battery stop charging
             elif battery_level > int(config['max_battery_level']):
-                tesla_api.stop_charge(
-                    token, teslamate_response, carid, teslamateapi_host, teslamateapi_port)
+                teslamate.stop_charge()
             else:
                 # car already charging
-                if tesla_api.is_car_charging(teslamate_response):
-                    current_amps = tesla_api.get_current_amps(
-                        teslamate_response)
+                if teslamate.is_car_charging():
+                    current_amps = teslamate.get_current_amps()
                     if current_amps is None:
                         print("couldnt get current amps not doing anything")
                         return
@@ -48,45 +45,36 @@ def mainfunction(envoy_data=None):
                         current_car_consumption
                     if (rest_house_consuption) > envoy_data['production']:
                         print('house is using too much power stop charge')
-                        tesla_api.stop_charge(
-                            token, teslamate_response, carid, teslamateapi_host, teslamateapi_port)
+                        teslamate.stop_charge()
                     elif envoy_data['surplus'] > 250:
                         print('still surplus left increase amps')
                         print(json.dumps(envoy_data))
-                        new_amps = tesla_api.calculate_increase_amps(
-                            envoy_data['surplus'], current_amps)
-                        tesla_api.set_charging_amps(
-                            token, new_amps, teslamate_response, carid, teslamateapi_host, teslamateapi_port)
-                        tesla_api.start_charge(
-                            token, teslamate_response, carid, teslamateapi_host, teslamateapi_port)
+                        new_amps = calculate_amps.calculate_increase_amps(
+                            envoy_data['surplus'], current_amps, config['voltage'])
+                        teslamate.set_charging_amps(new_amps)
+                        teslamate.start_charge()
                     elif envoy_data['surplus'] <= 0:
                         print('negetive surplus lets lower amps')
                         print(json.dumps(envoy_data))
-                        new_amps = tesla_api.calculate_decrease_amps(
-                            envoy_data['surplus'], current_amps)
+                        new_amps = calculate_amps.calculate_decrease_amps(
+                            envoy_data['surplus'], current_amps, config['voltage'])
                         print(f"lowering amps to {new_amps}")
-                        tesla_api.set_charging_amps(
-                            token, new_amps, teslamate_response, carid, teslamateapi_host, teslamateapi_port)
-                        tesla_api.start_charge(
-                            token, teslamate_response, carid, teslamateapi_host, teslamateapi_port)
+                        teslamate.set_charging_amps(new_amps)
+                        teslamate.start_charge()
                     else:
                         print('everything is balanced not doing anything')
                 else:  # car not charging
                     if envoy_data is None:
                         envoy_data = db_functions.read_envoy_data_from_db()
                     if envoy_data['surplus'] > int(config['minimum_watt']):
-                        required_amps = tesla_api.calculate_required_amps(
-                            envoy_data['surplus'])
-                        tesla_api.set_charging_amps(
-                            token, required_amps, teslamate_response, carid, teslamateapi_host, teslamateapi_port)
-                        tesla_api.start_charge(
-                            token, teslamate_response, carid, teslamateapi_host, teslamateapi_port)
+                        required_amps = calculate_amps.calculate_required_amps(
+                            envoy_data['surplus'], config['voltage'])
+                        teslamate.set_charging_amps(required_amps)
+                        teslamate.start_charge()
                     else:
                         print('surplus too low not doing anything')
                         print(json.dumps(envoy_data))
         else:
             print('car is not plugged in')
-            print(teslamate_response['charging_state'])
     else:
         print('Car is not home, not doing anything')
-        print(teslamate_response['location'])

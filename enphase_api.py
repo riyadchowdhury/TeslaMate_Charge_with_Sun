@@ -10,6 +10,8 @@ class Enhase:
         enlighten_user = os.getenv('ENLIGHTEN_USER')
         enlighten_pass = os.getenv('ENLIGHTEN_PASS')
         enlighten_commissioned = os.getenv('ENLIGHTEN_COMISSIONED')
+        enlighten_commissioned = os.getenv(
+            "ENLIGHTEN_COMISSIONED", 'True').lower() in ('true', '1', 't')
         enlighten_site_id = os.getenv('ENLIGHTEN_SITE_ID')
         enlighten_serial_num = os.getenv('ENLIGHTEN_SERIAL_NUM')
 

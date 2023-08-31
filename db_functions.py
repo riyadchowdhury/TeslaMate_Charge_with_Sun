@@ -10,14 +10,25 @@ def get_config_from_db():
     database.connect()
     database.execute_query("SELECT * FROM charge_with_sun_settings")
     query_response = database.fetch_one()
-    config_values = {
-        "charge_mode": query_response[0],
-        "minimum_battery_level": query_response[1],
-        "max_amps":  query_response[2],
-        "max_battery_level": query_response[3],
-        "voltage": query_response[4],
-        "minimum_watt": query_response[5]
-    }
+    if query_response is not None:
+        config_values = {
+            "charge_mode": query_response[0],
+            "minimum_battery_level": query_response[1],
+            "max_amps":  query_response[2],
+            "max_battery_level": query_response[3],
+            "voltage": query_response[4],
+            "minimum_watt": query_response[5]
+        }
+    else:
+        # Default value is DB doesnt have what we need
+        config_values = {
+            "charge_mode": "solar",
+            "minimum_battery_level": 30,
+            "max_amps": 32,
+            "max_battery_level": 80,
+            "voltage": 238,
+            "minimum_watt": 500
+        }
     database.close()
     return config_values
 

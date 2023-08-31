@@ -9,7 +9,7 @@ class Database:
         db_pass = os.getenv('DATABASE_PASS')
         db_name = os.getenv('DATABASE_NAME')
         db_host = os.getenv('DATABASE_HOST')
-        db_port = os.getenv('DATABASE_PORT', '5433')
+        db_port = os.getenv('DATABASE_PORT', '5432')
 
         self.db = db_name
         self.username = db_user
@@ -25,21 +25,19 @@ class Database:
         self.cur = self.conn.cursor()
 
     def execute_query(self, query, values=()):
-        self.cur.execute(query, values)
-        self.conn.commit()
+        if self.conn is not None and self.cur is not None:
+            self.cur.execute(query, values)
+            self.conn.commit()
 
     def fetch_one(self):
-        return self.cur.fetchone()
+        if self.cur is not None:
+            return self.cur.fetchone()
 
     def fetch_all(self):
-        return self.cur.fetchall()
+        if self.cur is not None:
+            return self.cur.fetchall()
 
     def close(self):
-        self.cur.close()
-        self.conn.close()
-
-
-# db = Database(db=db_name, username=db_user, password=db_pass,
-#               host=db_host, port=int(db_port))
-
-# db.connect()
+        if self.conn is not None and self.cur is not None:
+            self.cur.close()
+            self.conn.close()

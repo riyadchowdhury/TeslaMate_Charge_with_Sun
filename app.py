@@ -2,12 +2,12 @@ import db_init
 import configparser
 import db_functions
 import solar_surplus_to_tesla
-import tesla_api
 import asyncio
 import json
 import requests
 import os.path
 import shutil
+import flask
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template, redirect, url_for, request
