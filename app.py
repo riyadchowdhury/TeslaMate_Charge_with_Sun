@@ -1,6 +1,5 @@
 import db_init
 import configparser
-import local_envoy_reader
 import db_functions
 import solar_surplus_to_tesla
 import tesla_api

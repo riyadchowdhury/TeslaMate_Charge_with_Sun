@@ -5,16 +5,11 @@ import os
 
 class Database:
     def __init__(self):
-        # db_user = os.getenv('DATABASE_USER')
-        # db_pass = os.getenv('DATABASE_PASS')
-        # db_name = os.getenv('DATABASE_NAME')
-        # db_host = os.getenv('DATABASE_HOST')
-        # db_port = os.getenv('DATABASE_PORT', '5433')
-        db_user = 'teslamate'
-        db_pass = 'Passw0rd115'
-        db_name = 'teslamate'
-        db_host = '192.168.1.10'
-        db_port = '5432'
+        db_user = os.getenv('DATABASE_USER')
+        db_pass = os.getenv('DATABASE_PASS')
+        db_name = os.getenv('DATABASE_NAME')
+        db_host = os.getenv('DATABASE_HOST')
+        db_port = os.getenv('DATABASE_PORT', '5433')
 
         self.db = db_name
         self.username = db_user

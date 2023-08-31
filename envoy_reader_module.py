@@ -1,3 +1,5 @@
+# This file is a prerelease from https://github.com/jesserizzo/envoy_reader that supports the new firmware.
+
 """Module to read production and consumption values from an Enphase Envoy on the local network."""
 import argparse
 import asyncio
@@ -164,7 +166,8 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                     resp = await client.get(
                         url, headers=self._authorization_header, timeout=30, **kwargs
                     )
-                    _LOGGER.debug("Fetched from %s: %s: %s", url, resp, resp.text)
+                    _LOGGER.debug("Fetched from %s: %s: %s",
+                                  url, resp, resp.text)
                     return resp
             except httpx.TransportError:
                 if attempt == 2:
@@ -230,7 +233,8 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         )
 
         # Parse the HTML return from Envoy and check the text
-        soup = BeautifulSoup(token_validation_html.text, features="html.parser")
+        soup = BeautifulSoup(token_validation_html.text,
+                             features="html.parser")
         token_validation = soup.find("h2").contents[0]
         self._is_enphase_token_valid(token_validation)
 
@@ -445,7 +449,8 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                     else:
                         production = float(match.group(1))
             else:
-                raise RuntimeError("No match for production, check REGEX  " + text)
+                raise RuntimeError(
+                    "No match for production, check REGEX  " + text)
         return int(production)
 
     async def consumption(self):
@@ -609,7 +614,8 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                 response_dict[item["serialNumber"]] = [
                     item["lastReportWatts"],
                     time.strftime(
-                        "%Y-%m-%d %H:%M:%S", time.localtime(item["lastReportDate"])
+                        "%Y-%m-%d %H:%M:%S", time.localtime(
+                            item["lastReportDate"])
                     ),
                 ]
         except (JSONDecodeError, KeyError, IndexError, TypeError, AttributeError):
