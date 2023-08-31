@@ -1,3 +1,4 @@
+import db_init
 import configparser
 import local_envoy_reader
 import db_functions
@@ -12,10 +13,13 @@ import shutil
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template, redirect, url_for, request
 
-if not os.path.exists('/etc/enhpaseteslasync/config.ini'):
-    shutil.copyfile('config.ini', '/etc/enhpaseteslasync/config.ini')
+# if not os.path.exists('/etc/enhpaseteslasync/config.ini'):
+#     shutil.copyfile('config.ini', '/etc/enhpaseteslasync/config.ini')
 
-config = configparser.ConfigParser()
+# config = configparser.ConfigParser()
+db_init.initialize_db()
+
+config = db_functions.get_config_from_db()
 
 envoy_data = db_functions.write_envoy_data_to_db()
 solar_surplus_to_tesla.mainfunction(envoy_data)
@@ -36,8 +40,7 @@ def home():
 
 @app.route('/')
 def root():
-    config.read('/etc/enhpaseteslasync/config.ini')
-    if config['DEFAULT']['charge_mode'] == 'solar':
+    if config['charge_mode'] == 'solar':
         solar_selected = ' selected'
         grid_selected = ''
     else:
@@ -53,11 +56,9 @@ def settings():
 
 @app.route('/selectchargemode', methods=['POST'])
 def handle_data():
-    config.read('/etc/enhpaseteslasync/config.ini')
-    config['DEFAULT']['charge_mode'] = request.form['charge']
-    with open('/etc/enhpaseteslasync/config.ini', 'w') as configfile:
-        config.write(configfile)
-    print(f"charge mode is now {config['DEFAULT']['charge_mode']}")
+    config['charge_mode'] = request.form['charge']
+    db_functions.save_config_to_db(config)
+    print(f"charge mode is now {request.form['charge']}")
     return redirect(url_for('root'))
 
 

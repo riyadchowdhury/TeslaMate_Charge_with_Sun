@@ -1,4 +1,3 @@
-import configparser
 import db_functions
 import tesla_api
 import json
@@ -7,13 +6,12 @@ import os
 
 def mainfunction(envoy_data=None):
     print('running mainfunction')
-    config = configparser.ConfigParser()
-    config.read('/etc/enhpaseteslasync/config.ini')
-    print(f"charge mode is set to {config['DEFAULT']['charge_mode']}")
+    config = db_functions.get_config_from_db()
+    print(f"charge mode is set to {config['charge_mode']}")
     # If charge mode is set to grid don't do anything
-    if config['DEFAULT']['charge_mode'] == 'grid':
+    if config['charge_mode'] == 'grid':
         print(
-            f"charge mode is set to {config['DEFAULT']['charge_mode']} so not doing anything")
+            f"charge mode is set to {config['charge_mode']} so not doing anything")
         return
     token = os.getenv('TESLAMATEAPI_TOKEN')
     teslamateapi_host = os.getenv('TESLAMATEAPI_HOST')
@@ -25,13 +23,13 @@ def mainfunction(envoy_data=None):
         if tesla_api.is_car_plugged_in(teslamate_response):
             battery_level = tesla_api.get_battery_level(teslamate_response)
             # low battery charge no matter what
-            if battery_level < int(config['DEFAULT']['minimum_battery_level']):
+            if battery_level < int(config['minimum_battery_level']):
                 tesla_api.set_charging_amps(token, int(
-                    config['DEFAULT']['max_amps']), teslamate_response, carid, teslamateapi_host, teslamateapi_port)
+                    config['max_amps']), teslamate_response, carid, teslamateapi_host, teslamateapi_port)
                 tesla_api.start_charge(
                     token, teslamate_response, carid, teslamateapi_host, teslamateapi_port)
             # high battery stop charging
-            elif battery_level > int(config['DEFAULT']['max_battery_level']):
+            elif battery_level > int(config['max_battery_level']):
                 tesla_api.stop_charge(
                     token, teslamate_response, carid, teslamateapi_host, teslamateapi_port)
             else:
@@ -43,7 +41,7 @@ def mainfunction(envoy_data=None):
                         print("couldnt get current amps not doing anything")
                         return
                     current_car_consumption = current_amps * \
-                        int(config['DEFAULT']['voltage'])
+                        int(config['voltage'])
                     if envoy_data is None:
                         envoy_data = db_functions.read_envoy_data_from_db()
                     rest_house_consuption = envoy_data['consumption'] - \
@@ -76,7 +74,7 @@ def mainfunction(envoy_data=None):
                 else:  # car not charging
                     if envoy_data is None:
                         envoy_data = db_functions.read_envoy_data_from_db()
-                    if envoy_data['surplus'] > int(config['DEFAULT']['minimum_watt']):
+                    if envoy_data['surplus'] > int(config['minimum_watt']):
                         required_amps = tesla_api.calculate_required_amps(
                             envoy_data['surplus'])
                         tesla_api.set_charging_amps(
