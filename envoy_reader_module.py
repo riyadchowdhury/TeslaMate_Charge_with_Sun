@@ -198,7 +198,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         # Login to website and store cookie
         resp = await self._async_post(LOGIN_URL, data=payload_login)
 
-        if self.commissioned == "True" or self.commissioned == "Commissioned":
+        if self.commissioned == "True" or self.commissioned == "Commissioned" or self.commissioned is True:
             payload_token = {
                 "Site": self.enlighten_site_id,
                 "serialNum": self.enlighten_serial_num,
