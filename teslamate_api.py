@@ -2,6 +2,7 @@ import json
 import time
 import requests
 import os
+import globals
 
 
 class TeslaMate:
@@ -18,6 +19,7 @@ class TeslaMate:
 
         tesla_status = self.get_tesla_status()
         self.tesla_status = tesla_status
+        globals.charging = self.is_car_charging()
 
     def get_tesla_status(self):
         r = requests.get(
@@ -79,6 +81,23 @@ class TeslaMate:
             current_amps = 5
         return current_amps
 
+    def get_max_amps(self):
+        max_amps = int(
+            self.tesla_status['data']['status']['charging_details']['charge_current_request_max'])
+        return max_amps
+
+    def get_max_soc(self):
+        max_soc = int(
+            self.tesla_status['data']['status']['charging_details']['charge_limit_soc'])
+        return max_soc
+
+    def get_voltage(self, voltagefromconfig):
+        voltage = int(
+            self.tesla_status['data']['status']['charging_details']['charger_voltage'])
+        if voltage < 200:  # Sometimes teslamate returns really low voltage in the API
+            voltage = voltagefromconfig
+        return voltage
+
     def start_charge(self):
         if self.tesla_status['data']['status']['state'] != 'charging':
             r = requests.post(
@@ -92,11 +111,12 @@ class TeslaMate:
                 print("Error starting charge")
             else:
                 print("starting charge")
+                globals.charging = True
         else:
             print('car already charging')
 
     def wake_car(self):
-        if self.tesla_status['data']['status']['state'] == 'asleep':
+        if self.tesla_status['data']['status']['state'] == 'asleep' or self.tesla_status['data']['status']['state'] == 'suspended':
             r = requests.post(
                 f"http://{self.teslamateapi_host}:{self.teslamateapi_port}/api/v1/cars/{self.carid}/wake_up",
                 headers={
@@ -124,6 +144,7 @@ class TeslaMate:
                 print("Error setting charge")
             else:
                 print("stopping charge")
+                globals.charging = False
         else:
             print('car not charging nothing to stop, current state ' +
                   self.tesla_status['data']['status']['state'])

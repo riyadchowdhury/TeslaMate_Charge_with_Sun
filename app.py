@@ -1,21 +1,12 @@
 import db_init
-import configparser
 import db_functions
 import solar_surplus_to_tesla
-import asyncio
-import json
-import requests
-import os.path
-import shutil
-import flask
+import globals
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template, redirect, url_for, request
 
-# if not os.path.exists('/etc/enhpaseteslasync/config.ini'):
-#     shutil.copyfile('config.ini', '/etc/enhpaseteslasync/config.ini')
-
-# config = configparser.ConfigParser()
+globals.init()
 db_init.initialize_db()
 
 config = db_functions.get_config_from_db()
