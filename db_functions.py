@@ -1,9 +1,11 @@
 import db
 import enphase_api
 import json
-import os
 import datetime
 import globals
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_config_from_db():
@@ -27,6 +29,7 @@ def get_config_from_db():
             "minimum_watt": 500
         }
     database.close()
+    logging.debug('Got config from db: %s', config_values)
     return config_values
 
 
@@ -40,6 +43,7 @@ def save_config_to_db(config):
                                voltage = '{config['voltage']}',
                                minimum_watt = '{config['minimum_watt']}'
                            """)
+    logging.debug('Saved config to db: %s', config)
     database.close()
 
 
@@ -52,14 +56,12 @@ def write_envoy_data_to_db():
                               production, consumption, surplus)
                               VALUES (%s, %s, %s, %s)''',
                            (envoy_data['production'], envoy_data['consumption'], envoy_data['surplus'], globals.charging))
-    print(json.dumps(envoy_data))
-    print('Done write')
+    logging.info('Writing envoy data to db: %s', envoy_data)
     database.close()
     return envoy_data
 
 
 def read_envoy_data_from_db():
-    print('Reading')
     fiveminsago = datetime.datetime.utcnow() - datetime.timedelta(minutes=5)
     database = db.Database()
     database.connect()
@@ -72,6 +74,8 @@ def read_envoy_data_from_db():
     if query_result is None or query_result[0] is None or query_result[1] is None or query_result[2] is None:
         enphase = enphase_api.Enhase()
         envoy_data = enphase.get_envoy_data()
+        logging.warning(
+            'Database does not contain enough data, returning current live data: %s', envoy_data)
         return envoy_data
     else:
         data = {
@@ -79,4 +83,5 @@ def read_envoy_data_from_db():
             "consumption": int(query_result[1]),
             "surplus": int(query_result[2])
         }
+        logging.debug('Average envoy data from last 5 mins: %s', data)
         return data

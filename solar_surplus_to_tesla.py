@@ -2,17 +2,18 @@ import db_functions
 import teslamate_api
 import calculate_amps
 import json
-import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def mainfunction(envoy_data=None):
-    print('running mainfunction')
     config = db_functions.get_config_from_db()
-    print(f"charge mode is set to {config['charge_mode']}")
+    logging.info('Charge mode is set to: %s', config['charge_mode'])
     # If charge mode is set to grid don't do anything
     if config['charge_mode'] == 'grid':
-        print(
-            f"charge mode is set to {config['charge_mode']} so not doing anything")
+        logging.info(
+            f"Charge mode is set to {config['charge_mode']} so not doing anything")
         return
     teslamate = teslamate_api.TeslaMate()
     if teslamate.is_car_home():
@@ -33,7 +34,8 @@ def mainfunction(envoy_data=None):
                 if teslamate.is_car_charging():
                     current_amps = teslamate.get_current_amps()
                     if current_amps is None:
-                        print("couldnt get current amps not doing anything")
+                        logging.warning(
+                            'Couldnt get current amps not doing anything')
                         return
                     current_car_consumption = current_amps * voltage
                     if envoy_data is None:
@@ -41,37 +43,47 @@ def mainfunction(envoy_data=None):
                     rest_house_consuption = envoy_data['consumption'] - \
                         current_car_consumption
                     if (rest_house_consuption) > envoy_data['production']:
-                        print('house is using too much power stop charge')
+                        logging.info(
+                            'House is using too much power, stopping charge')
                         teslamate.stop_charge()
                     elif envoy_data['surplus'] > 250:
-                        print('still surplus left increase amps')
-                        print(json.dumps(envoy_data))
+                        logging.info(
+                            'Still surplus left increase amps')
+                        logging.debug('Current envoy data: %s', envoy_data)
                         new_amps = calculate_amps.calculate_increase_amps(
                             envoy_data['surplus'], current_amps, voltage)
+                        logging.info('Increasing amps to: %s', new_amps)
                         teslamate.set_charging_amps(new_amps)
                         teslamate.start_charge()
                     elif envoy_data['surplus'] <= 0:
-                        print('negetive surplus lets lower amps')
-                        print(json.dumps(envoy_data))
+                        logging.info(
+                            'Negetive surplus lets lower amps')
+                        logging.debug('Current envoy data: %s', envoy_data)
                         new_amps = calculate_amps.calculate_decrease_amps(
                             envoy_data['surplus'], current_amps, voltage)
-                        print(f"lowering amps to {new_amps}")
+                        logging.info('Lowering amps to: %s', new_amps)
                         teslamate.set_charging_amps(new_amps)
                         teslamate.start_charge()
                     else:
-                        print('everything is balanced not doing anything')
+                        logging.info(
+                            'Everything is balanced not doing anything')
                 else:  # car not charging
                     if envoy_data is None:
                         envoy_data = db_functions.read_envoy_data_from_db()
                     if envoy_data['surplus'] > int(config['minimum_watt']):
                         required_amps = calculate_amps.calculate_required_amps(
                             envoy_data['surplus'], voltage)
+                        logging.info(
+                            'Starting charge, setting current to : %s', new_amps)
                         teslamate.set_charging_amps(required_amps)
                         teslamate.start_charge()
                     else:
-                        print('surplus too low not doing anything')
-                        print(json.dumps(envoy_data))
+                        logging.info(
+                            'Surplus too low not doing anything')
+                        logging.debug('Current envoy data: %s', envoy_data)
         else:
-            print('car is not plugged in')
+            logging.info(
+                'Car is not plugged in')
     else:
-        print('Car is not home, not doing anything')
+        logging.info(
+            'Car is not home')

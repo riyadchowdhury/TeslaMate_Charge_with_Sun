@@ -2,6 +2,9 @@
 import envoy_reader_module
 import asyncio
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Enhase:
@@ -22,7 +25,6 @@ class Enhase:
         self.enlighten_serial_num = enlighten_serial_num
 
     def get_envoy_data(self):
-        print('getting envoy data')
         envoyreader = envoy_reader_module.EnvoyReader(
             self.envoy_host,
             '',
@@ -38,10 +40,10 @@ class Enhase:
         production = asyncio.run(envoyreader.production())
         consumption = asyncio.run(envoyreader.consumption())
         surplus = int(production) - int(consumption)
-        print(production)
         data = {
             "production": int(production),
             "consumption": int(consumption),
             "surplus": surplus
         }
+        logging.debug('Got data from envoy device: %s', data)
         return data

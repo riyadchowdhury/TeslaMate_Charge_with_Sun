@@ -2,12 +2,15 @@ import db_init
 import db_functions
 import solar_surplus_to_tesla
 import globals
+import logging
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template, redirect, url_for, request
 
 globals.init()
 db_init.initialize_db()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 config = db_functions.get_config_from_db()
 
@@ -48,7 +51,7 @@ def settings():
 def handle_data():
     config['charge_mode'] = request.form['charge']
     db_functions.save_config_to_db(config)
-    print(f"charge mode is now {request.form['charge']}")
+    logger.info(f"Charge mode is now {request.form['charge']}")
     return redirect(url_for('root'))
 
 
