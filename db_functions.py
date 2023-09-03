@@ -53,7 +53,7 @@ def write_envoy_data_to_db():
     enphase = enphase_api.Enhase()
     envoy_data = enphase.get_envoy_data()
     database.execute_query('''INSERT INTO solar (
-                              production, consumption, surplus)
+                              production, consumption, surplus, charging)
                               VALUES (%s, %s, %s, %s)''',
                            (envoy_data['production'], envoy_data['consumption'], envoy_data['surplus'], globals.charging))
     logging.info('Writing envoy data to db: %s', envoy_data)
