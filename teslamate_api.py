@@ -3,6 +3,9 @@ import time
 import requests
 import os
 import globals
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TeslaMate:
@@ -26,7 +29,7 @@ class TeslaMate:
             f"http://{self.teslamateapi_host}:{self.teslamateapi_port}/api/v1/cars/{self.carid}/status",
         )
         tesla_status = r.json()
-        print(tesla_status)
+        logging.debug('Tesla Status from TeslaMate: %s', tesla_status)
         return tesla_status
 
     def set_charging_amps(self, amps, attempt=0):
@@ -44,17 +47,18 @@ class TeslaMate:
                     'Authorization': f"Bearer {self.token}"
                 }
             )
-            print(r.content)
+            logging.debug('Response from API when setting amps: %s', r.content)
             if r.status_code != 200:
                 attempt = attempt + 1
-                print("Error setting charge try {attempt}")
+                logging.warning(
+                    'Couldnt set charge trying again attempt: %s', attempt)
                 time.sleep(5)
                 if attempt < 3:
                     self.set_charging_amps(amps, attempt)
             else:
-                print(f"car set to {amps} amps")
+                logging.info(f"Car set to {amps} amps")
         else:
-            print(f"car already set to charge at {amps} amps")
+            logging.info(f"Car already set to charge at {amps} amps")
 
     def is_car_plugged_in(self):
         return self.tesla_status['data']['status']['charging_details']['plugged_in']
@@ -106,14 +110,15 @@ class TeslaMate:
                     'Authorization': f"Bearer {self.token}"
                 }
             )
-            print(r.content)
+            logging.debug('Response from API when setting amps: %s', r.content)
             if r.status_code != 200:
-                print("Error starting charge")
+                logging.error(
+                    'Couldnt start charge: %s', r.content)
             else:
-                print("starting charge")
+                logger.info("Started charging")
                 globals.charging = True
         else:
-            print('car already charging')
+            logger.info("Car was already charging")
 
     def wake_car(self):
         if self.tesla_status['data']['status']['state'] == 'asleep' or self.tesla_status['data']['status']['state'] == 'suspended':
@@ -123,13 +128,14 @@ class TeslaMate:
                     'Authorization': f"Bearer {self.token}"
                 }
             )
-            print(r.content)
+            logging.debug('Response from API when waking car: %s', r.content)
             if r.status_code != 200:
-                print("Error waking car")
+                logging.error(
+                    'Couldnt wake cake: %s', r.content)
             else:
-                print("waking charge")
+                logger.info("Woken car")
         else:
-            print('car already awake')
+            logger.info("Car was already awake")
 
     def stop_charge(self):
         if self.tesla_status['data']['status']['state'] == 'charging':
@@ -139,12 +145,14 @@ class TeslaMate:
                     'Authorization': f"Bearer {self.token}"
                 }
             )
-            print(r.content)
+            logging.debug(
+                'Response from API when stopping charge: %s', r.content)
             if r.status_code != 200:
-                print("Error setting charge")
+                logging.error(
+                    'Couldnt stop charge: %s', r.content)
             else:
-                print("stopping charge")
+                logger.info("Stopped charge")
                 globals.charging = False
         else:
-            print('car not charging nothing to stop, current state ' +
-                  self.tesla_status['data']['status']['state'])
+            logger.info("Car not charging nothing to stop, current state: %s",
+                        self.tesla_status['data']['status']['state'])
