@@ -42,7 +42,7 @@ ENVOY_MODEL_LEGACY = "P0"
 LOGIN_URL = "https://entrez.enphaseenergy.com/login"
 TOKEN_URL = "https://entrez.enphaseenergy.com/entrez_tokens"
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__).setLevel(logging.INFO)
 
 
 def has_production_and_consumption(json):
