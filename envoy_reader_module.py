@@ -291,8 +291,9 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                         _LOGGER.debug(
                             "Found Expired token - Retrieving new token")
                         await self._getEnphaseToken()
-                _LOGGER.debug("Found empty token: %s", self._token)
-                await self._getEnphaseToken()
+                else:
+                    _LOGGER.debug("Found empty token: %s", self._token)
+                    await self._getEnphaseToken()
             else:
                 _LOGGER.debug("Token is populated: %s", self._token)
                 if self._is_enphase_token_expired(self._token):
