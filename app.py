@@ -12,6 +12,7 @@ globals.init()
 db_init.initialize_db()
 LOGLEVEL = os.environ.get('LOGGING_LEVEL', 'INFO').upper()
 logging.basicConfig(level=LOGLEVEL)
+logging.getLogger('httpx').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 config = db_functions.get_config_from_db()
