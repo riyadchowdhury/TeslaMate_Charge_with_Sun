@@ -9,7 +9,6 @@ import jwt
 import re
 import time
 from json.decoder import JSONDecodeError
-import globals
 
 import httpx
 from bs4 import BeautifulSoup
@@ -242,11 +241,9 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
     def _is_enphase_token_valid(self, response):
         if response == "Valid token.":
             _LOGGER.debug("Token is valid")
-            globals.enphase_token = self._token
             return True
         else:
             _LOGGER.debug("Invalid token!")
-            globals.enphase_token = None
             return False
 
     def _is_enphase_token_expired(self, token):
@@ -282,18 +279,8 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
             _LOGGER.debug("Checking Token value: %s", self._token)
             # Check if a token has already been retrieved
             if self._token == "":
-                # Check if token was saved in a global
-                if globals.enphase_token is not None:
-                    self._token = globals.enphase_token
-                    _LOGGER.debug(
-                        "Token is empty but globals had a token in it: %s", self._token)
-                    if self._is_enphase_token_expired(self._token):
-                        _LOGGER.debug(
-                            "Found Expired token - Retrieving new token")
-                        await self._getEnphaseToken()
-                else:
-                    _LOGGER.debug("Found empty token: %s", self._token)
-                    await self._getEnphaseToken()
+                _LOGGER.debug("Found empty token: %s", self._token)
+                await self._getEnphaseToken()
             else:
                 _LOGGER.debug("Token is populated: %s", self._token)
                 if self._is_enphase_token_expired(self._token):
