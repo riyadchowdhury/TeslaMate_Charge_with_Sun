@@ -74,7 +74,7 @@ def mainfunction(envoy_data=None):
                         required_amps = calculate_amps.calculate_required_amps(
                             envoy_data['surplus'], voltage)
                         logging.info(
-                            'Starting charge, setting current to : %s', new_amps)
+                            'Starting charge, setting current to : %s', required_amps)
                         teslamate.set_charging_amps(required_amps)
                         teslamate.start_charge()
                     else:
