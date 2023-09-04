@@ -3,13 +3,15 @@ import db_functions
 import solar_surplus_to_tesla
 import globals
 import logging
+import os
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, render_template, redirect, url_for, request
 
 globals.init()
 db_init.initialize_db()
-logging.basicConfig(level=logging.INFO)
+LOGLEVEL = os.environ.get('LOGGING_LEVEL', 'INFO').upper()
+logging.basicConfig(level=LOGLEVEL)
 logger = logging.getLogger(__name__)
 
 config = db_functions.get_config_from_db()

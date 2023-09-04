@@ -1,7 +1,7 @@
 argparse
 asyncio
 datetime
-jwt
+PyJWT
 envoy_utils
 httpx
 bs4

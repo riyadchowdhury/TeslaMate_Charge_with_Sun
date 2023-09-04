@@ -1,6 +1,5 @@
 import db
 import enphase_api
-import json
 import datetime
 import globals
 import logging
