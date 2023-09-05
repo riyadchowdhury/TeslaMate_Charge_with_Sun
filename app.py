@@ -10,9 +10,11 @@ from flask import Flask, render_template, redirect, url_for, request
 
 globals.init()
 db_init.initialize_db()
-LOGLEVEL = os.environ.get('LOGGING_LEVEL', 'WARNING').upper()
+LOGLEVEL = os.environ.get('LOGGING_LEVEL', 'INFO').upper()
 logging.basicConfig(level=LOGLEVEL)
-logging.getLogger('root').setLevel(logging.INFO)
+logging.getLogger('httpx').setLevel(logging.WARNING)
+logging.getLogger('apscheduler.scheduler').setLevel(logging.WARNING)
+logging.getLogger('apscheduler.executors.default').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 config = db_functions.get_config_from_db()
