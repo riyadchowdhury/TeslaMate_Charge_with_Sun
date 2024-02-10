@@ -1,3 +1,5 @@
+# This file is a prerelease from https://github.com/jesserizzo/envoy_reader that supports the new firmware.
+
 """Module to read production and consumption values from an Enphase Envoy on the local network."""
 import argparse
 import asyncio
@@ -41,6 +43,7 @@ LOGIN_URL = "https://entrez.enphaseenergy.com/login"
 TOKEN_URL = "https://entrez.enphaseenergy.com/entrez_tokens"
 
 _LOGGER = logging.getLogger(__name__)
+_LOGGER.setLevel(logging.WARNING)
 
 
 def has_production_and_consumption(json):
@@ -164,7 +167,8 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                     resp = await client.get(
                         url, headers=self._authorization_header, timeout=30, **kwargs
                     )
-                    _LOGGER.debug("Fetched from %s: %s: %s", url, resp, resp.text)
+                    _LOGGER.debug("Fetched from %s: %s: %s",
+                                  url, resp, resp.text)
                     return resp
             except httpx.TransportError:
                 if attempt == 2:
@@ -195,7 +199,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         # Login to website and store cookie
         resp = await self._async_post(LOGIN_URL, data=payload_login)
 
-        if self.commissioned == "True" or self.commissioned == "Commissioned":
+        if self.commissioned == "True" or self.commissioned == "Commissioned" or self.commissioned is True:
             payload_token = {
                 "Site": self.enlighten_site_id,
                 "serialNum": self.enlighten_serial_num,
@@ -230,7 +234,8 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         )
 
         # Parse the HTML return from Envoy and check the text
-        soup = BeautifulSoup(token_validation_html.text, features="html.parser")
+        soup = BeautifulSoup(token_validation_html.text,
+                             features="html.parser")
         token_validation = soup.find("h2").contents[0]
         self._is_enphase_token_valid(token_validation)
 
@@ -299,12 +304,12 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         response = await self._async_fetch_with_retry(
             inverters_url, auth=inverters_auth
         )
-        _LOGGER.debug(
-            "Fetched from %s: %s: %s",
-            inverters_url,
-            response,
-            response.text,
-        )
+        # _LOGGER.debug(
+        #     "Fetched from %s: %s: %s",
+        #     inverters_url,
+        #     response,
+        #     response.text,
+        # )
         if response.status_code == 401:
             response.raise_for_status()
         self.endpoint_production_inverters = response
@@ -445,7 +450,8 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                     else:
                         production = float(match.group(1))
             else:
-                raise RuntimeError("No match for production, check REGEX  " + text)
+                raise RuntimeError(
+                    "No match for production, check REGEX  " + text)
         return int(production)
 
     async def consumption(self):
@@ -609,7 +615,8 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
                 response_dict[item["serialNumber"]] = [
                     item["lastReportWatts"],
                     time.strftime(
-                        "%Y-%m-%d %H:%M:%S", time.localtime(item["lastReportDate"])
+                        "%Y-%m-%d %H:%M:%S", time.localtime(
+                            item["lastReportDate"])
                     ),
                 ]
         except (JSONDecodeError, KeyError, IndexError, TypeError, AttributeError):

@@ -1,13 +1,11 @@
 argparse
 asyncio
 datetime
-jwt
-schedule
+PyJWT
 envoy_utils
 httpx
 bs4
-urllib3
 apscheduler
 flask
 requests
-influxdb-client
+psycopg2-binary
