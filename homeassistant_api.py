@@ -1,5 +1,4 @@
-# Module db.py
-import asyncio
+# Module homeassist_api
 import os
 import logging
 import requests
