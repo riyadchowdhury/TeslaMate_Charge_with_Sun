@@ -1,7 +1,6 @@
 import db_functions
 import teslamate_api
 import calculate_amps
-import json
 import logging
 
 logger = logging.getLogger(__name__)

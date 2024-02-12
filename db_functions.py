@@ -1,8 +1,10 @@
 import db
 import enphase_api
+import homeassistant_api
 import datetime
 import globals
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +51,16 @@ def save_config_to_db(config):
 def write_envoy_data_to_db():
     database = db.Database()
     database.connect()
-    enphase = enphase_api.Enhase()
-    envoy_data = enphase.get_envoy_data()
+    if "HOMEASSISTANT_HOST" in os.environ:
+        ha = homeassistant_api.HomeAssistantEnvoy()
+        envoy_data = ha.get_envoy_data_from_ha()
+    elif "ENVOY_HOST" in os.environ:
+        enphase = enphase_api.Enhase()
+        envoy_data = enphase.get_envoy_data()
+    else:
+        logging.error(
+            'Error either envoy host or homeassistant host needs to be set')
+        raise ValueError("Homename not set")
     database.execute_query('''INSERT INTO solar (
                               production, consumption, surplus, charging)
                               VALUES (%s, %s, %s, %s)''',
@@ -71,8 +81,16 @@ def read_envoy_data_from_db():
     query_result = database.fetch_one()
     database.close()
     if query_result is None or query_result[0] is None or query_result[1] is None or query_result[2] is None:
-        enphase = enphase_api.Enhase()
-        envoy_data = enphase.get_envoy_data()
+        if "HOMEASSISTANT_HOST" in os.environ:
+            ha = homeassistant_api.HomeAssistantEnvoy()
+            envoy_data = ha.get_envoy_data_from_ha()
+        elif "ENVOY_HOST" in os.environ:
+            enphase = enphase_api.Enhase()
+            envoy_data = enphase.get_envoy_data()
+        else:
+            logging.error(
+                'Error either envoy host or homeassistant host needs to be set')
+            raise ValueError("Homename not set")
         logging.warning(
             'Database does not contain enough data, returning current live data: %s', envoy_data)
         return envoy_data
